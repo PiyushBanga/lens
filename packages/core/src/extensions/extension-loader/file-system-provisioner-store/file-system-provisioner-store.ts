@@ -4,30 +4,44 @@
  */
 
 import type { ObservableMap } from "mobx";
-import { action, makeObservable } from "mobx";
-import type { BaseStoreDependencies } from "../../../common/base-store/base-store";
-import { BaseStore } from "../../../common/base-store/base-store";
+import { action } from "mobx";
+import type { BaseStore } from "../../../common/base-store/base-store";
 import type { LensExtensionId } from "../../lens-extension";
-import { toJS } from "../../../common/utils";
 import type { EnsureHashedDirectoryForExtension } from "./ensure-hashed-directory-for-extension.injectable";
+import type { CreateBaseStore } from "../../../common/base-store/create-base-store.injectable";
+import { object } from "../../../common/utils";
 
-interface FSProvisionModel {
-  extensions: Record<string, string>; // extension names to paths
+interface FileSystemProvisionerStoreModel {
+  extensions: Partial<Record<string, string>>; // extension names to paths
 }
 
-interface Dependencies extends BaseStoreDependencies {
+interface Dependencies {
+  readonly directoryForExtensionData: string;
+  readonly storeMigrationVersion: string;
+  readonly registeredExtensions: ObservableMap<LensExtensionId, string>;
+  createBaseStore: CreateBaseStore;
   ensureHashedDirectoryForExtension: EnsureHashedDirectoryForExtension;
-  registeredExtensions: ObservableMap<LensExtensionId, string>;
 }
 
-export class FileSystemProvisionerStore extends BaseStore<FSProvisionModel> {
-  constructor(protected readonly dependencies: Dependencies) {
-    super(dependencies, {
+export class FileSystemProvisionerStore {
+  private readonly store: BaseStore<FileSystemProvisionerStoreModel>;
+
+  constructor(private readonly dependencies: Dependencies) {
+    this.store = this.dependencies.createBaseStore({
       configName: "lens-filesystem-provisioner-store",
       accessPropertiesByDotNotation: false, // To make dots safe in cluster context names
+      projectVersion: this.dependencies.storeMigrationVersion,
+      fromStore: action(({ extensions = {}}) => {
+        this.dependencies.registeredExtensions.replace(object.entries(extensions));
+      }),
+      toJSON: () => ({
+        extensions: Object.fromEntries(this.dependencies.registeredExtensions),
+      }),
     });
+  }
 
-    makeObservable(this);
+  load() {
+    this.store.load();
   }
 
   /**
@@ -38,16 +52,5 @@ export class FileSystemProvisionerStore extends BaseStore<FSProvisionModel> {
    */
   async requestDirectory(extensionName: string): Promise<string> {
     return this.dependencies.ensureHashedDirectoryForExtension(extensionName);
-  }
-
-  @action
-  protected fromStore({ extensions }: FSProvisionModel = { extensions: {}}): void {
-    this.dependencies.registeredExtensions.merge(extensions);
-  }
-
-  toJSON(): FSProvisionModel {
-    return toJS({
-      extensions: Object.fromEntries(this.dependencies.registeredExtensions),
-    });
   }
 }
