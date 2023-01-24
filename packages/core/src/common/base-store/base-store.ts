@@ -4,9 +4,9 @@
  */
 
 import type Config from "conf";
-import type { Migrations, Options as ConfOptions } from "conf/dist/source/types";
+import type { Options as ConfOptions } from "conf/dist/source/types";
 import type { IEqualsComparer } from "mobx";
-import { makeObservable, reaction } from "mobx";
+import { reaction } from "mobx";
 import { disposer, isPromiseLike, toJS } from "../utils";
 import isEqual from "lodash/isEqual";
 import { kebabCase } from "lodash";
@@ -18,12 +18,31 @@ import type { EnlistMessageChannelListener } from "../utils/channel/enlist-messa
 import type { SendMessageToChannel } from "../utils/channel/message-to-channel-injection-token";
 import type { MessageChannel } from "../utils/channel/message-channel-listener-injection-token";
 
-export interface BaseStoreParams<T> extends Omit<ConfOptions<T>, "migrations" | "projectVersion"> {
+export interface BaseStoreParams<T> extends ConfOptions<T> {
   syncOptions?: {
     fireImmediately?: boolean;
     equals?: IEqualsComparer<T>;
   };
   readonly configName: string;
+
+  /**
+   * fromStore is called internally when a child class syncs with the file
+   * system.
+   *
+   * Note: This function **must** be synchronous.
+   *
+   * @param data the parsed information read from the stored JSON file
+   */
+  fromStore(data: T): void;
+
+  /**
+   * toJSON is called when syncing the store to the filesystem. It should
+   * produce a JSON serializable object representation of the current state.
+   *
+   * It is recommended that a round trip is valid. Namely, calling
+   * `this.fromStore(this.toJSON())` shouldn't change the state.
+   */
+  toJSON(): T;
 }
 
 export interface IpcChannelPrefixes {
@@ -33,9 +52,7 @@ export interface IpcChannelPrefixes {
 
 export interface BaseStoreDependencies {
   readonly logger: Logger;
-  readonly storeMigrationVersion: string;
   readonly directoryForUserData: string;
-  readonly migrations: Migrations<Record<string, unknown>>;
   readonly ipcChannelPrefixes: IpcChannelPrefixes;
   readonly shouldDisableSyncInListener: boolean;
   getConfigurationFileModel: GetConfigurationFileModel;
@@ -48,7 +65,7 @@ export interface BaseStoreDependencies {
 /**
  * Note: T should only contain base JSON serializable types.
  */
-export abstract class BaseStore<T extends object> {
+export class BaseStore<T extends object> {
   private readonly syncDisposers = disposer();
 
   readonly displayName = kebabCase(this.params.configName).toUpperCase();
@@ -63,7 +80,6 @@ export abstract class BaseStore<T extends object> {
     protected readonly params: BaseStoreParams<T>,
   ) {
     this.dependencies = dependencies;
-    makeObservable(this);
   }
 
   /**
@@ -74,13 +90,11 @@ export abstract class BaseStore<T extends object> {
 
     const config = this.dependencies.getConfigurationFileModel({
       projectName: "lens",
-      projectVersion: this.dependencies.storeMigrationVersion,
       cwd: this.cwd(),
       ...this.params,
-      migrations: this.dependencies.migrations as Migrations<T>,
     });
 
-    const res = this.fromStore(config.store);
+    const res = this.params.fromStore(config.store);
 
     if (isPromiseLike(res)) {
       this.dependencies.logger.error(`${this.displayName} extends BaseStore<T>'s fromStore method returns a Promise or promise-like object. This is an error and must be fixed.`);
@@ -109,7 +123,7 @@ export abstract class BaseStore<T extends object> {
     const enableSync = () => {
       this.syncDisposers.push(
         reaction(
-          () => toJS(this.toJSON()), // unwrap possible observables and react to everything
+          () => toJS(this.params.toJSON()), // unwrap possible observables and react to everything
           model => {
             this.dependencies.persistStateToConfig(config, model);
             this.dependencies.sendMessageToChannel(sendChannel, model);
@@ -126,8 +140,8 @@ export abstract class BaseStore<T extends object> {
             }
 
             // todo: use "resourceVersion" if merge required (to avoid equality checks => better performance)
-            if (!isEqual(this.toJSON(), model)) {
-              this.fromStore(model);
+            if (!isEqual(this.params.toJSON(), model)) {
+              this.params.fromStore(model);
             }
 
             if (this.dependencies.shouldDisableSyncInListener) {
@@ -142,23 +156,4 @@ export abstract class BaseStore<T extends object> {
 
     enableSync();
   }
-
-  /**
-   * fromStore is called internally when a child class syncs with the file
-   * system.
-   *
-   * Note: This function **must** be synchronous.
-   *
-   * @param data the parsed information read from the stored JSON file
-   */
-  protected abstract fromStore(data: T): void;
-
-  /**
-   * toJSON is called when syncing the store to the filesystem. It should
-   * produce a JSON serializable object representation of the current state.
-   *
-   * It is recommended that a round trip is valid. Namely, calling
-   * `this.fromStore(this.toJSON())` shouldn't change the state.
-   */
-  abstract toJSON(): T;
 }

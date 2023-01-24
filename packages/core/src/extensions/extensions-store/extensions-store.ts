@@ -4,13 +4,13 @@
  */
 
 import type { LensExtensionId } from "../lens-extension";
-import { action, computed, makeObservable, observable } from "mobx";
+import { action, computed, observable } from "mobx";
 import { toJS } from "../../common/utils";
-import type { BaseStoreDependencies } from "../../common/base-store/base-store";
-import { BaseStore } from "../../common/base-store/base-store";
+import type { BaseStore } from "../../common/base-store/base-store";
+import type { CreateBaseStore } from "../../common/base-store/create-base-store.injectable";
 
 export interface LensExtensionsStoreModel {
-  extensions: Record<LensExtensionId, LensExtensionState>;
+  extensions?: Record<LensExtensionId, LensExtensionState>;
 }
 
 export interface LensExtensionState {
@@ -23,23 +23,35 @@ export interface IsEnabledExtensionDescriptor {
   isBundled: boolean;
 }
 
-export class ExtensionsStore extends BaseStore<LensExtensionsStoreModel> {
-  constructor(deps: BaseStoreDependencies) {
-    super(deps, {
+export interface ExtensionsStoreDependencies {
+  createBaseStore: CreateBaseStore;
+  readonly storeMigrationVersion: string;
+}
+
+export class ExtensionsStore {
+  private readonly store: BaseStore<LensExtensionsStoreModel>;
+
+  constructor(private readonly dependencies: ExtensionsStoreDependencies) {
+    this.store = this.dependencies.createBaseStore({
       configName: "lens-extensions",
+      fromStore: action(({ extensions = {}}) => {
+        this.state.merge(extensions);
+      }),
+      toJSON: () => toJS({
+        extensions: Object.fromEntries(this.state),
+      }),
+      projectVersion: this.dependencies.storeMigrationVersion,
     });
-    makeObservable(this);
-    this.load();
+    this.store.load();
   }
 
-  @computed
-  get enabledExtensions() {
-    return Array.from(this.state.values())
+  readonly enabledExtensions = computed(() => (
+    Array.from(this.state.values())
       .filter(({ enabled }) => enabled)
-      .map(({ name }) => name);
-  }
+      .map(({ name }) => name)
+  ));
 
-  protected state = observable.map<LensExtensionId, LensExtensionState>();
+  protected readonly state = observable.map<LensExtensionId, LensExtensionState>();
 
   isEnabled({ id, isBundled }: IsEnabledExtensionDescriptor): boolean {
     // By default false, so that copied extensions are disabled by default.
@@ -50,15 +62,4 @@ export class ExtensionsStore extends BaseStore<LensExtensionsStoreModel> {
   mergeState = action((extensionsState: Record<LensExtensionId, LensExtensionState> | [LensExtensionId, LensExtensionState][]) => {
     this.state.merge(extensionsState);
   });
-
-  @action
-  protected fromStore({ extensions }: LensExtensionsStoreModel) {
-    this.state.merge(extensions);
-  }
-
-  toJSON(): LensExtensionsStoreModel {
-    return toJS({
-      extensions: Object.fromEntries(this.state),
-    });
-  }
 }
