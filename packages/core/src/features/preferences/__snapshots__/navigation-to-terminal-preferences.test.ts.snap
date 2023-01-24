@@ -717,7 +717,7 @@ exports[`preferences - navigation to terminal preferences given in preferences, 
         class="HotbarSelector"
       >
         <i
-          class="Icon Icon previous material interactive focusable"
+          class="Icon previous material interactive focusable"
           tabindex="0"
         >
           <span
@@ -1350,7 +1350,7 @@ exports[`preferences - navigation to terminal preferences given in preferences, 
         class="HotbarSelector"
       >
         <i
-          class="Icon Icon previous material interactive focusable"
+          class="Icon previous material interactive focusable"
           tabindex="0"
         >
           <span

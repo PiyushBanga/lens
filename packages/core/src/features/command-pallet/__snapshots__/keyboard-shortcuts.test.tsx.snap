@@ -342,7 +342,7 @@ exports[`Command Pallet: keyboard shortcut tests when on linux renders 1`] = `
           class="HotbarSelector"
         >
           <i
-            class="Icon Icon previous material interactive focusable"
+            class="Icon previous material interactive focusable"
             tabindex="0"
           >
             <span
@@ -738,7 +738,7 @@ exports[`Command Pallet: keyboard shortcut tests when on linux when pressing ESC
           class="HotbarSelector"
         >
           <i
-            class="Icon Icon previous material interactive focusable"
+            class="Icon previous material interactive focusable"
             tabindex="0"
           >
             <span
@@ -1134,7 +1134,7 @@ exports[`Command Pallet: keyboard shortcut tests when on linux when pressing SHI
           class="HotbarSelector"
         >
           <i
-            class="Icon Icon previous material interactive focusable"
+            class="Icon previous material interactive focusable"
             tabindex="0"
           >
             <span
@@ -1674,7 +1674,7 @@ exports[`Command Pallet: keyboard shortcut tests when on linux when pressing SHI
           class="HotbarSelector"
         >
           <i
-            class="Icon Icon previous material interactive focusable"
+            class="Icon previous material interactive focusable"
             tabindex="0"
           >
             <span
@@ -1979,7 +1979,7 @@ exports[`Command Pallet: keyboard shortcut tests when on macOS renders 1`] = `
           class="HotbarSelector"
         >
           <i
-            class="Icon Icon previous material interactive focusable"
+            class="Icon previous material interactive focusable"
             tabindex="0"
           >
             <span
@@ -2284,7 +2284,7 @@ exports[`Command Pallet: keyboard shortcut tests when on macOS when pressing ESC
           class="HotbarSelector"
         >
           <i
-            class="Icon Icon previous material interactive focusable"
+            class="Icon previous material interactive focusable"
             tabindex="0"
           >
             <span
@@ -2589,7 +2589,7 @@ exports[`Command Pallet: keyboard shortcut tests when on macOS when pressing SHI
           class="HotbarSelector"
         >
           <i
-            class="Icon Icon previous material interactive focusable"
+            class="Icon previous material interactive focusable"
             tabindex="0"
           >
             <span
@@ -2990,7 +2990,7 @@ exports[`Command Pallet: keyboard shortcut tests when on macOS when pressing SHI
           class="HotbarSelector"
         >
           <i
-            class="Icon Icon previous material interactive focusable"
+            class="Icon previous material interactive focusable"
             tabindex="0"
           >
             <span

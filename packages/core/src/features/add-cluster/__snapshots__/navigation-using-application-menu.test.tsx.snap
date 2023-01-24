@@ -250,7 +250,7 @@ exports[`add-cluster - navigation using application menu renders 1`] = `
         class="HotbarSelector"
       >
         <i
-          class="Icon Icon previous material interactive focusable"
+          class="Icon previous material interactive focusable"
           tabindex="0"
         >
           <span
@@ -558,7 +558,7 @@ exports[`add-cluster - navigation using application menu when navigating to add 
         class="HotbarSelector"
       >
         <i
-          class="Icon Icon previous material interactive focusable"
+          class="Icon previous material interactive focusable"
           tabindex="0"
         >
           <span

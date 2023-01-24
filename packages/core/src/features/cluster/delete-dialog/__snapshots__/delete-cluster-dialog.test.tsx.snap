@@ -885,7 +885,7 @@ exports[`Deleting a cluster when an internal kubeconfig cluster is used when the
           class="HotbarSelector"
         >
           <i
-            class="Icon Icon previous material interactive focusable"
+            class="Icon previous material interactive focusable"
             tabindex="0"
           >
             <span
@@ -1880,7 +1880,7 @@ exports[`Deleting a cluster when the kubeconfig has multiple clusters when the d
           class="HotbarSelector"
         >
           <i
-            class="Icon Icon previous material interactive focusable"
+            class="Icon previous material interactive focusable"
             tabindex="0"
           >
             <span
@@ -2908,7 +2908,7 @@ exports[`Deleting a cluster when the kubeconfig has multiple clusters when the d
           class="HotbarSelector"
         >
           <i
-            class="Icon Icon previous material interactive focusable"
+            class="Icon previous material interactive focusable"
             tabindex="0"
           >
             <span
@@ -4015,7 +4015,7 @@ exports[`Deleting a cluster when the kubeconfig has multiple clusters when the d
           class="HotbarSelector"
         >
           <i
-            class="Icon Icon previous material interactive focusable"
+            class="Icon previous material interactive focusable"
             tabindex="0"
           >
             <span
@@ -5122,7 +5122,7 @@ exports[`Deleting a cluster when the kubeconfig has only one cluster when the di
           class="HotbarSelector"
         >
           <i
-            class="Icon Icon previous material interactive focusable"
+            class="Icon previous material interactive focusable"
             tabindex="0"
           >
             <span

@@ -251,7 +251,7 @@ exports[`show-about-using-tray renders 1`] = `
           class="HotbarSelector"
         >
           <i
-            class="Icon Icon previous material interactive focusable"
+            class="Icon previous material interactive focusable"
             tabindex="0"
           >
             <span
@@ -1023,7 +1023,7 @@ exports[`show-about-using-tray when navigating using tray renders 1`] = `
           class="HotbarSelector"
         >
           <i
-            class="Icon Icon previous material interactive focusable"
+            class="Icon previous material interactive focusable"
             tabindex="0"
           >
             <span

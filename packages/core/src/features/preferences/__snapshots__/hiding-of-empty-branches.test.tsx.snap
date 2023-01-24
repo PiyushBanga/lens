@@ -717,7 +717,7 @@ exports[`preferences - hiding-of-empty-branches, given in preferences page given
         class="HotbarSelector"
       >
         <i
-          class="Icon Icon previous material interactive focusable"
+          class="Icon previous material interactive focusable"
           tabindex="0"
         >
           <span
@@ -1515,7 +1515,7 @@ exports[`preferences - hiding-of-empty-branches, given in preferences page given
         class="HotbarSelector"
       >
         <i
-          class="Icon Icon previous material interactive focusable"
+          class="Icon previous material interactive focusable"
           tabindex="0"
         >
           <span
@@ -2325,7 +2325,7 @@ exports[`preferences - hiding-of-empty-branches, given in preferences page given
         class="HotbarSelector"
       >
         <i
-          class="Icon Icon previous material interactive focusable"
+          class="Icon previous material interactive focusable"
           tabindex="0"
         >
           <span

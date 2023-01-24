@@ -261,7 +261,7 @@ exports[`shows custom entity names renders 1`] = `
           class="HotbarSelector"
         >
           <i
-            class="Icon Icon previous material interactive focusable"
+            class="Icon previous material interactive focusable"
             tabindex="0"
           >
             <span
