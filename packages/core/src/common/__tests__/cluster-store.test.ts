@@ -217,7 +217,7 @@ describe("cluster-store", () => {
     });
 
     it("allows getting all of the clusters", async () => {
-      const storedClusters = clusterStore.clustersList;
+      const storedClusters = clusterStore.clustersList.get();
 
       expect(storedClusters.length).toBe(3);
       expect(storedClusters[0].id).toBe("cluster1");
@@ -264,7 +264,7 @@ describe("cluster-store", () => {
     });
 
     it("does not enable clusters with invalid kubeconfig", () => {
-      const storedClusters = clusterStore.clustersList;
+      const storedClusters = clusterStore.clustersList.get();
 
       expect(storedClusters.length).toBe(1);
     });
@@ -301,13 +301,13 @@ describe("cluster-store", () => {
     });
 
     it("migrates to modern format with kubeconfig in a file", async () => {
-      const config = clusterStore.clustersList[0].kubeConfigPath;
+      const config = clusterStore.clustersList.get()[0].kubeConfigPath;
 
       expect(readFileSync(config)).toBe(minimalValidKubeConfig);
     });
 
     it("migrates to modern format with icon not in file", async () => {
-      expect(clusterStore.clustersList[0].preferences.icon).toMatch(/data:;base64,/);
+      expect(clusterStore.clustersList.get()[0].preferences.icon).toMatch(/data:;base64,/);
     });
   });
 });

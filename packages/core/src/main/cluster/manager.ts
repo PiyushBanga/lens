@@ -37,15 +37,15 @@ export class ClusterManager {
   init = once(() => {
     // reacting to every cluster's state change and total amount of items
     reaction(
-      () => this.dependencies.store.clustersList.map(c => c.getState()),
-      () => this.updateCatalog(this.dependencies.store.clustersList),
+      () => this.dependencies.store.clustersList.get().map(c => c.getState()),
+      () => this.updateCatalog(this.dependencies.store.clustersList.get()),
       { fireImmediately: false },
     );
 
     // reacting to every cluster's preferences change and total amount of items
     reaction(
-      () => this.dependencies.store.clustersList.map(c => toJS(c.preferences)),
-      () => this.updateCatalog(this.dependencies.store.clustersList),
+      () => this.dependencies.store.clustersList.get().map(c => toJS(c.preferences)),
+      () => this.updateCatalog(this.dependencies.store.clustersList.get()),
       { fireImmediately: false },
     );
 
@@ -235,7 +235,7 @@ export class ClusterManager {
 
   protected onNetworkOffline = () => {
     this.dependencies.logger.info(`${logPrefix} network is offline`);
-    this.dependencies.store.clustersList.forEach((cluster) => {
+    this.dependencies.store.clustersList.get().forEach((cluster) => {
       if (!cluster.disconnected) {
         cluster.online = false;
         cluster.accessible = false;
@@ -246,7 +246,7 @@ export class ClusterManager {
 
   protected onNetworkOnline = () => {
     this.dependencies.logger.info(`${logPrefix} network is online`);
-    this.dependencies.store.clustersList.forEach((cluster) => {
+    this.dependencies.store.clustersList.get().forEach((cluster) => {
       if (!cluster.disconnected) {
         cluster.refreshConnectionStatus().catch((e) => e);
       }
