@@ -4,10 +4,10 @@
  */
 
 import { merge } from "lodash";
-import { action, makeObservable, observable } from "mobx";
+import { action, observable, runInAction } from "mobx";
 import type { PartialDeep } from "type-fest";
-import type { BaseStoreDependencies } from "../base-store/base-store";
-import { BaseStore } from "../base-store/base-store";
+import type { BaseStore } from "../base-store/base-store";
+import type { CreateBaseStore } from "../base-store/create-base-store.injectable";
 
 export interface EntityPreferencesModel {
   /**
@@ -20,30 +20,36 @@ export interface EntityPreferencesStoreModel {
   entities?: [string, EntityPreferencesModel][];
 }
 
-export class EntityPreferencesStore extends BaseStore<EntityPreferencesStoreModel> {
-  @observable readonly preferences = observable.map<string, PartialDeep<EntityPreferencesModel>>();
+export interface EntityPreferencesStoreDependencies {
+  createBaseStore: CreateBaseStore;
+  readonly storeMigrationVersion: string;
+}
 
-  constructor(deps: BaseStoreDependencies) {
-    super(deps, {
+export class EntityPreferencesStore {
+  private readonly store: BaseStore<EntityPreferencesStoreModel>;
+
+  readonly preferences = observable.map<string, PartialDeep<EntityPreferencesModel>>();
+
+  constructor(private readonly dependencies: EntityPreferencesStoreDependencies) {
+    this.store = this.dependencies.createBaseStore({
       configName: "lens-entity-preferences-store",
+      projectVersion: this.dependencies.storeMigrationVersion,
+      fromStore: action(({ entities = [] }) => {
+        this.preferences.replace(entities);
+      }),
+      toJSON: () => ({
+        entities: this.preferences.toJSON(),
+      }),
     });
-
-    makeObservable(this);
   }
 
-  @action
   mergePreferences(entityId: string, preferences: PartialDeep<EntityPreferencesModel>): void {
-    this.preferences.set(entityId, merge(this.preferences.get(entityId), preferences));
+    runInAction(() => {
+      this.preferences.set(entityId, merge(this.preferences.get(entityId), preferences));
+    });
   }
 
-  @action
-  protected fromStore(data: EntityPreferencesStoreModel): void {
-    this.preferences.replace(data.entities ?? []);
-  }
-
-  toJSON(): EntityPreferencesStoreModel {
-    return {
-      entities: this.preferences.toJSON(),
-    };
+  load() {
+    this.store.load();
   }
 }
