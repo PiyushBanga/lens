@@ -22,7 +22,7 @@ import getBasenameOfPathInjectable from "../common/path/get-basename.injectable"
 import { enlistMessageChannelListenerInjectionToken } from "../common/utils/channel/enlist-message-channel-listener-injection-token";
 import { sendMessageToChannelInjectionToken } from "../common/utils/channel/message-to-channel-injection-token";
 
-export interface ExtensionStoreParams<T extends object> extends BaseStoreParams<T> {
+export interface ExtensionStoreParams<T extends object> extends Omit<BaseStoreParams<T>, "migrations"> {
   migrations?: Migrations<T>;
 }
 

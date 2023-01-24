@@ -4,7 +4,7 @@
  */
 
 import type Config from "conf";
-import type { Options as ConfOptions } from "conf/dist/source/types";
+import type { Migrations, Options as ConfOptions } from "conf/dist/source/types";
 import type { IEqualsComparer } from "mobx";
 import { reaction } from "mobx";
 import { disposer, isPromiseLike, toJS } from "../utils";
@@ -18,12 +18,14 @@ import type { EnlistMessageChannelListener } from "../utils/channel/enlist-messa
 import type { SendMessageToChannel } from "../utils/channel/message-to-channel-injection-token";
 import type { MessageChannel } from "../utils/channel/message-channel-listener-injection-token";
 
-export interface BaseStoreParams<T> extends ConfOptions<T> {
+export interface BaseStoreParams<T> extends Omit<ConfOptions<T>, "migrations"> {
   syncOptions?: {
     fireImmediately?: boolean;
     equals?: IEqualsComparer<T>;
   };
   readonly configName: string;
+
+  migrations?: Migrations<Record<string, unknown>>;
 
   /**
    * fromStore is called internally when a child class syncs with the file
@@ -91,7 +93,7 @@ export class BaseStore<T extends object> {
     const config = this.dependencies.getConfigurationFileModel({
       projectName: "lens",
       cwd: this.cwd(),
-      ...this.params,
+      ...this.params as ConfOptions<T>,
     });
 
     const res = this.params.fromStore(config.store);
