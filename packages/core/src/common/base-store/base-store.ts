@@ -77,7 +77,7 @@ export class BaseStore<T extends object> {
    */
   protected readonly dependencies: BaseStoreDependencies;
 
-  protected constructor(
+  constructor(
     dependencies: BaseStoreDependencies,
     protected readonly params: BaseStoreParams<T>,
   ) {
