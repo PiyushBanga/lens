@@ -19,6 +19,7 @@ import type { InitializableState } from "../../common/initializable-state/create
 import type { EmitAppEvent } from "../../common/app-event-bus/emit-event.injectable";
 import type { Stat } from "../../common/fs/stat.injectable";
 import type { IComputedValue } from "mobx";
+import type { ClusterEnvironment } from "../../common/cluster-env.injectable";
 
 export class ShellOpenError extends Error {
   constructor(message: string, options?: ErrorOptions) {
@@ -111,6 +112,7 @@ export interface ShellSessionDependencies {
   readonly userShellSetting: IComputedValue<string>;
   readonly appName: string;
   readonly buildVersion: InitializableState<string>;
+  readonly clusterEnvironment: IComputedValue<ClusterEnvironment>;
   computeShellEnvironment: ComputeShellEnvironment;
   spawnPty: SpawnPty;
   emitAppEvent: EmitAppEvent;
@@ -349,7 +351,10 @@ export abstract class ShellSession {
       return process.env;
     })();
 
-    const env = clearKubeconfigEnvVars(JSON.parse(JSON.stringify(rawEnv)));
+    const env: Partial<Record<string, string>> = {
+      ...clearKubeconfigEnvVars(JSON.parse(JSON.stringify(rawEnv))),
+      ...this.dependencies.clusterEnvironment.get(),
+    };
     const pathStr = [await this.kubectlBinDirP, ...this.getPathEntries(), env.PATH].join(path.delimiter);
 
     delete env.DEBUG; // don't pass DEBUG into shells
@@ -381,10 +386,6 @@ export abstract class ShellSession {
     env.KUBECONFIG = await this.kubeconfigPathP;
     env.TERM_PROGRAM = this.dependencies.appName;
     env.TERM_PROGRAM_VERSION = this.dependencies.buildVersion.get();
-
-    if (this.cluster.preferences.httpsProxy) {
-      env.HTTPS_PROXY = this.cluster.preferences.httpsProxy;
-    }
 
     env.NO_PROXY = [
       "localhost",

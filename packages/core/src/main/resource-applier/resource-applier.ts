@@ -15,6 +15,8 @@ import type { RemovePath } from "../../common/fs/remove.injectable";
 import type { ExecFile } from "../../common/fs/exec-file.injectable";
 import type { JoinPaths } from "../../common/path/join-paths.injectable";
 import type { AsyncResult } from "../../common/utils/async-result";
+import type { IComputedValue } from "mobx";
+import type { ClusterEnvironment } from "../../common/cluster-env.injectable";
 
 export interface ResourceApplierDependencies {
   emitAppEvent: EmitAppEvent;
@@ -23,6 +25,7 @@ export interface ResourceApplierDependencies {
   execFile: ExecFile;
   joinPaths: JoinPaths;
   readonly logger: Logger;
+  readonly clusterEnvironment: IComputedValue<ClusterEnvironment>;
 }
 
 export class ResourceApplier {
@@ -87,17 +90,17 @@ export class ResourceApplier {
 
     this.dependencies.logger.debug(`shooting manifests with ${kubectlPath}`, { args });
 
-    const execEnv = { ...process.env };
-    const httpsProxy = this.cluster.preferences?.httpsProxy;
-
-    if (httpsProxy) {
-      execEnv.HTTPS_PROXY = httpsProxy;
-    }
+    const execEnv = {
+      ...process.env,
+      ...this.dependencies.clusterEnvironment.get(),
+    };
 
     try {
       await this.dependencies.writeFile(fileName, content);
 
-      const result = await this.dependencies.execFile(kubectlPath, args);
+      const result = await this.dependencies.execFile(kubectlPath, args, {
+        env: execEnv,
+      });
 
       if (result.callWasSuccessful) {
         return result;

@@ -15,6 +15,7 @@ import type { CreateKubeAuthProxy } from "../kube-auth-proxy/create-kube-auth-pr
 import type { GetPrometheusProviderByKind } from "../prometheus/get-by-kind.injectable";
 import type { IComputedValue } from "mobx";
 import type { Logger } from "../../common/logger";
+import type { ClusterEnvironment } from "../../common/cluster-env.injectable";
 
 export interface PrometheusDetails {
   prometheusPath: string;
@@ -34,6 +35,7 @@ export interface ContextHandlerDependencies {
   readonly authProxyCa: string;
   readonly prometheusProviders: IComputedValue<PrometheusProvider[]>;
   readonly logger: Logger;
+  readonly clusterEnvironment: IComputedValue<ClusterEnvironment>;
 }
 
 export interface ClusterContextHandler {
@@ -183,11 +185,11 @@ export class ContextHandler implements ClusterContextHandler {
 
   protected async ensureServerHelper(): Promise<KubeAuthProxy> {
     if (!this.kubeAuthProxy) {
-      const proxyEnv = Object.assign({}, process.env);
+      const proxyEnv = {
+        ...process.env,
+        ...this.dependencies.clusterEnvironment.get(),
+      };
 
-      if (this.cluster.preferences.httpsProxy) {
-        proxyEnv.HTTPS_PROXY = this.cluster.preferences.httpsProxy;
-      }
       this.kubeAuthProxy = this.dependencies.createKubeAuthProxy(this.cluster, proxyEnv);
       await this.kubeAuthProxy.run();
 
