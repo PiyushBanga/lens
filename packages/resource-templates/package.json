@@ -1,0 +1,11 @@
+{
+  "name": "@k8slens/resource-templates",
+  "version": "6.4.0-beta.10",
+  "private": false,
+  "copyright": "© 2023 OpenLens Authors",
+  "license": "MIT",
+  "author": "OpenLens Authors <info@k8slens.dev>",
+  "files": [
+    "templates/**/*"
+  ]
+}
