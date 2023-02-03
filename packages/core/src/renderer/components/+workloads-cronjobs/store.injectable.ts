@@ -5,6 +5,7 @@
 import { getInjectable } from "@ogre-tools/injectable";
 import assert from "assert";
 import getJobsByOwnerInjectable from "../+workloads-jobs/get-jobs-by-owner.injectable";
+import getPodsByOwnerIdInjectable from "../+workloads-pods/get-pods-by-owner-id.injectable";
 import { kubeObjectStoreInjectionToken } from "../../../common/k8s-api/api-manager/kube-object-store-token";
 import cronJobApiInjectable from "../../../common/k8s-api/endpoints/cron-job.api.injectable";
 import loggerInjectable from "../../../common/logger.injectable";
@@ -21,6 +22,7 @@ const cronJobStoreInjectable = getInjectable({
 
     return new CronJobStore({
       getJobsByOwner: di.inject(getJobsByOwnerInjectable),
+      getPodsByOwnerId: di.inject(getPodsByOwnerIdInjectable),
       context: di.inject(clusterFrameContextForNamespacedResourcesInjectable),
       logger: di.inject(loggerInjectable),
     }, api);

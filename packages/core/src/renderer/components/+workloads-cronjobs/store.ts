@@ -6,15 +6,22 @@
 import type { KubeObjectStoreDependencies, KubeObjectStoreOptions } from "../../../common/k8s-api/kube-object.store";
 import { KubeObjectStore } from "../../../common/k8s-api/kube-object.store";
 import type { CronJob, CronJobApi } from "../../../common/k8s-api/endpoints/cron-job.api";
+import type { Pod } from "../../../common/k8s-api/endpoints";
 import type { GetJobsByOwner } from "../+workloads-jobs/get-jobs-by-owner.injectable";
+import type { GetPodsByOwnerId } from "../+workloads-pods/get-pods-by-owner-id.injectable";
 
 interface Dependencies extends KubeObjectStoreDependencies {
   getJobsByOwner: GetJobsByOwner;
+  getPodsByOwnerId: GetPodsByOwnerId;
 }
 
 export class CronJobStore extends KubeObjectStore<CronJob, CronJobApi> {
   constructor(protected readonly dependencies: Dependencies, api: CronJobApi, opts?: KubeObjectStoreOptions) {
     super(dependencies, api, opts);
+  }
+
+  getChildPods(cronJob: CronJob): Pod[] {
+    return this.dependencies.getPodsByOwnerId(cronJob.getId());
   }
 
   getStatuses(cronJobs?: CronJob[]) {
