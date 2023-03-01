@@ -1,18 +1,8 @@
-# @k8slens/application
+# @k8slens/kubectl-versions
 
-This package contains stuff related to creating Lens-applications. 
+This package contains a injectable for a JSON object between strings of the format "MAJOR.MINOR" and "MAJOR.MINOR.PATCH".
 
-In the beginning it will contain just the injection tokens used to configure the application.
-
-## Install
-```bash
-$ npm install @k8slens/application
-```
-
-
-## Usage
-
-As of now, this package doesn't do anything alone. It just provides you way to register implementation for contract. 
-
-Future ambition is that all stuff related to how applications are built will be relocated here.
-
+This object represents the current (at time of building each release of this package)
+greatest PATCH version for each "MAJOR.MINOR" version of `kubectl`.
+This is done at compile time so that we don't have to worry about being able to access this data on user machines.
+Furthermore, this is dynamic in that the previous method was to update the table by hand.
