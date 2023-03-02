@@ -28,10 +28,9 @@ import electronInjectable from "./utils/resolve-system-proxy/electron.injectable
 import initializeClusterManagerInjectable from "./cluster/initialize-manager.injectable";
 import type { GlobalOverride } from "../common/test-utils/get-global-override";
 import { getOverrideFsWithFakes } from "../test-utils/override-fs-with-fakes";
-import {
-  setLegacyGlobalDiForExtensionApi,
-} from "../extensions/as-legacy-globals-for-extension-api/legacy-global-di-for-extension-api";
+import { setLegacyGlobalDiForExtensionApi } from "../extensions/as-legacy-globals-for-extension-api/legacy-global-di-for-extension-api";
 import { registerMobX } from "@ogre-tools/injectable-extension-for-mobx";
+import { kubectlVersionsInjectable } from "@k8slens/kubectl-versions";
 
 export function getDiForUnitTesting() {
   const di = createContainer("main");
@@ -50,6 +49,8 @@ export function getDiForUnitTesting() {
     for (const block of chunk(100)(injectables)) {
       di.register(...block);
     }
+
+    di.register(kubectlVersionsInjectable);
   });
 
   for (const globalOverridePath of global.injectablePaths.main.globalOverridePaths) {
