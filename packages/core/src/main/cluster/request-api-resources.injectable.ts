@@ -7,11 +7,12 @@ import { getInjectable } from "@ogre-tools/injectable";
 import loggerInjectable from "../../common/logger.injectable";
 import type { KubeApiResource } from "../../common/rbac";
 import type { Cluster } from "../../common/cluster/cluster";
-import { requestApiVersionsInjectionToken } from "./request-api-versions";
+import { apiVersionsRequesterInjectionToken } from "./request-api-versions";
 import { withConcurrencyLimit } from "../../common/utils/with-concurrency-limit";
 import requestKubeApiResourcesForInjectable from "./request-kube-api-resources-for.injectable";
 import type { AsyncResult } from "../../common/utils/async-result";
 import { backoffCaller } from "../../common/utils/backoff-caller";
+import { byOrderNumber } from "../../common/utils/composable-responsibilities/orderable/orderable";
 
 export type RequestApiResources = (cluster: Cluster) => Promise<AsyncResult<KubeApiResource[], Error>>;
 
@@ -24,7 +25,8 @@ const requestApiResourcesInjectable = getInjectable({
   id: "request-api-resources",
   instantiate: (di): RequestApiResources => {
     const logger = di.inject(loggerInjectable);
-    const apiVersionRequesters = di.injectMany(requestApiVersionsInjectionToken);
+    const apiVersionRequesters = di.injectMany(apiVersionsRequesterInjectionToken)
+      .sort(byOrderNumber);
     const requestKubeApiResourcesFor = di.inject(requestKubeApiResourcesForInjectable);
 
     return async (...args) => {
@@ -34,7 +36,7 @@ const requestApiResourcesInjectable = getInjectable({
       const groupLists: KubeResourceListGroup[] = [];
 
       for (const apiVersionRequester of apiVersionRequesters) {
-        const result = await backoffCaller(() => apiVersionRequester(cluster), {
+        const result = await backoffCaller(() => apiVersionRequester.request(cluster), {
           onIntermediateError: (error, attempt) => {
             cluster.broadcastConnectUpdate(`Failed to list kube API resource kinds, attempt ${attempt}: ${error}`, "warning");
             logger.warn(`[LIST-API-RESOURCES]: failed to list kube api resources: ${error}`, { attempt, clusterId: cluster.id });

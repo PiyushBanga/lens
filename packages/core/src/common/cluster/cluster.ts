@@ -16,16 +16,18 @@ import type { ClusterState, ClusterMetricsResourceType, ClusterId, ClusterMetada
 import { ClusterMetadataKey, initialNodeShellImage, ClusterStatus, clusterModelIdChecker, updateClusterModelChecker } from "../cluster-types";
 import { disposer, isDefined, isRequestError, toJS } from "../utils";
 import { clusterListNamespaceForbiddenChannel } from "../ipc/cluster";
-import type { CanI } from "./authorization-review.injectable";
-import type { ListNamespaces } from "./list-namespaces.injectable";
+import type { CreateCanI } from "./create-can-i.injectable";
+import type { CreateListNamespaces } from "./list-namespaces.injectable";
 import assert from "assert";
 import type { Logger } from "../logger";
 import type { BroadcastMessage } from "../ipc/broadcast-message.injectable";
 import type { LoadConfigfromFile } from "../kube-helpers/load-config-from-file.injectable";
-import type { CanListResource, RequestNamespaceListPermissions, RequestNamespaceListPermissionsFor } from "./request-namespace-list-permissions.injectable";
+import type { CanListResource, RequestNamespaceListPermissions, CreateRequestNamespaceListPermissions } from "./create-request-namespace-list-permissions.injectable";
 import type { RequestApiResources } from "../../main/cluster/request-api-resources.injectable";
 import type { DetectClusterMetadata } from "../../main/cluster-detectors/detect-cluster-metadata.injectable";
 import type { FalibleOnlyClusterMetadataDetector } from "../../main/cluster-detectors/token";
+import type { CreateAuthorizationApi } from "./create-authorization-api.injectable";
+import type { CreateCoreApi } from "./create-core-api.injectable";
 
 export interface ClusterDependencies {
   readonly directoryForKubeConfigs: string;
@@ -35,10 +37,12 @@ export interface ClusterDependencies {
   createKubeconfigManager: (cluster: Cluster) => KubeconfigManager;
   createContextHandler: (cluster: Cluster) => ClusterContextHandler;
   createKubectl: (clusterVersion: string) => Kubectl;
-  createAuthorizationReview: (config: KubeConfig) => CanI;
+  createCanI: CreateCanI;
+  createAuthorizationApi: CreateAuthorizationApi;
   requestApiResources: RequestApiResources;
-  requestNamespaceListPermissionsFor: RequestNamespaceListPermissionsFor;
-  createListNamespaces: (config: KubeConfig) => ListNamespaces;
+  createRequestNamespaceListPermissions: CreateRequestNamespaceListPermissions;
+  createCoreApi: CreateCoreApi;
+  createListNamespaces: CreateListNamespaces;
   broadcastMessage: BroadcastMessage;
   loadConfigfromFile: LoadConfigfromFile;
 }
@@ -471,8 +475,9 @@ export class Cluster implements ClusterModel {
   private async refreshAccessibility(): Promise<void> {
     this.dependencies.logger.info(`[CLUSTER]: refreshAccessibility`, this.getMeta());
     const proxyConfig = await this.getProxyKubeconfig();
-    const canI = this.dependencies.createAuthorizationReview(proxyConfig);
-    const requestNamespaceListPermissions = this.dependencies.requestNamespaceListPermissionsFor(proxyConfig);
+    const api = this.dependencies.createAuthorizationApi(proxyConfig);
+    const canI = this.dependencies.createCanI(api);
+    const requestNamespaceListPermissions = this.dependencies.createRequestNamespaceListPermissions(api);
 
     this.isAdmin = await canI({
       namespace: "kube-system",
@@ -661,7 +666,8 @@ export class Cluster implements ClusterModel {
     }
 
     try {
-      const listNamespaces = this.dependencies.createListNamespaces(proxyConfig);
+      const api = this.dependencies.createCoreApi(proxyConfig);
+      const listNamespaces = this.dependencies.createListNamespaces(api);
 
       return await listNamespaces();
     } catch (error) {

@@ -15,8 +15,11 @@ export interface ClusterData {
   readonly id: string;
 }
 
-export type RequestApiVersions = (cluster: ClusterData) => Promise<AsyncResult<KubeResourceListGroup[], Error>>;
+export interface ApiVersionsRequester {
+  request(cluster: ClusterData): Promise<AsyncResult<KubeResourceListGroup[], Error>>;
+  readonly orderNumber: number;
+}
 
-export const requestApiVersionsInjectionToken = getInjectionToken<RequestApiVersions>({
+export const apiVersionsRequesterInjectionToken = getInjectionToken<ApiVersionsRequester>({
   id: "request-api-versions-token",
 });

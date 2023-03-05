@@ -3,10 +3,8 @@
  * Licensed under MIT License. See LICENSE in root directory for more information.
  */
 
-import type { KubeConfig, V1ResourceAttributes } from "@kubernetes/client-node";
-import { AuthorizationV1Api } from "@kubernetes/client-node";
+import type { AuthorizationV1Api, V1ResourceAttributes } from "@kubernetes/client-node";
 import { getInjectable } from "@ogre-tools/injectable";
-import type { Logger } from "../logger";
 import loggerInjectable from "../logger.injectable";
 
 /**
@@ -16,20 +14,14 @@ import loggerInjectable from "../logger.injectable";
  */
 export type CanI = (resourceAttributes: V1ResourceAttributes) => Promise<boolean>;
 
-/**
- * @param proxyConfig This config's `currentContext` field must be set, and will be used as the target cluster
- */
-export type AuthorizationReview = (proxyConfig: KubeConfig) => CanI; 
+export type CreateCanI = (api: AuthorizationV1Api) => CanI;
 
-interface Dependencies { 
-  logger: Logger;
-}
+const createCanIInjectable = getInjectable({
+  id: "create-can-i",
+  instantiate: (di): CreateCanI => {
+    const logger = di.inject(loggerInjectable);
 
-const authorizationReview = ({ logger }: Dependencies): AuthorizationReview => {
-  return (proxyConfig) => {
-    const api = proxyConfig.makeApiClient(AuthorizationV1Api);
-
-    return async (resourceAttributes: V1ResourceAttributes): Promise<boolean> => {
+    return (api) => async (resourceAttributes: V1ResourceAttributes): Promise<boolean> => {
       try {
         const { body } = await api.createSelfSubjectAccessReview({
           apiVersion: "authorization.k8s.io/v1",
@@ -44,16 +36,7 @@ const authorizationReview = ({ logger }: Dependencies): AuthorizationReview => {
         return false;
       }
     };
-  };
-};
-
-const authorizationReviewInjectable = getInjectable({
-  id: "authorization-review",
-  instantiate: (di) => {
-    const logger = di.inject(loggerInjectable);
-
-    return authorizationReview({ logger });
   },
 });
 
-export default authorizationReviewInjectable;
+export default createCanIInjectable;
