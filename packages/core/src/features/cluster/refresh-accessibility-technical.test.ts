@@ -23,7 +23,6 @@ import type { K8sRequest } from "../../main/k8s-request.injectable";
 import k8sRequestInjectable from "../../main/k8s-request.injectable";
 import type { DetectClusterMetadata } from "../../main/cluster-detectors/detect-cluster-metadata.injectable";
 import detectClusterMetadataInjectable from "../../main/cluster-detectors/detect-cluster-metadata.injectable";
-import { delay } from "../../common/utils";
 
 describe("Refresh Cluster Accessibility Technical Tests", () => {
   let builder: ApplicationBuilder;
@@ -34,9 +33,7 @@ describe("Refresh Cluster Accessibility Technical Tests", () => {
   let detectClusterMetadataMock: AsyncFnMock<DetectClusterMetadata>;
 
   beforeEach(async () => {
-    builder = getApplicationBuilder({
-      fakeTime: false,
-    });
+    builder = getApplicationBuilder();
 
     const mainDi = builder.mainDi;
 
@@ -113,8 +110,8 @@ describe("Refresh Cluster Accessibility Technical Tests", () => {
 
       // NOTE: I don't know why these are all are required to get the tests to pass
       await flushPromises();
-      await delay(50);
-      await flushPromises();
+
+      console.log((process as any)._getActiveHandles());
     });
 
     it("requests if cluster has admin permissions", async () => {
